@@ -1,0 +1,435 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>작은 정원 사진전 · 9주차 연습 파일</title>
+<style>
+  :root {
+    --accent:#b3341a; --ink:#111; --muted:#555; --line:#ddd; --paper:#f6f3ee;
+    --text-s:13px; --text-m:16px; --text-l:22px;
+    --space:12px; --radius:8px;
+    --mark-size:22px; --letter-cell:24px; --stripe-height:48px;
+    --dot-size:3px; --dot-gap:16px; --dot-color:#b3341a;
+    --stripe-angle:45deg; --stripe-width:6px; --stripe-gap:10px; --stripe-color:#b3341a;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+    font-size: var(--text-m);
+    line-height: 1.6;
+    color: var(--ink);
+    background: var(--paper);
+  }
+
+  body.gradient-on {
+    background-image: radial-gradient(
+      circle at var(--glow-x, 50%) var(--glow-y, 25%),
+      color-mix(in srgb, var(--accent) 16%, transparent),
+      transparent 65%);
+    background-attachment: fixed;
+  }
+
+  .nav, .page, .foot { max-width: 1200px; margin-inline: auto; }
+  .nav, .foot { padding: var(--space); }
+  .nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: calc(var(--space) * 2 / 3) calc(var(--space) * 2);
+    border-bottom: 1px solid var(--line);
+  }
+  .brand { display: inline-flex; align-items: center; gap: calc(var(--space) * 2 / 3); }
+  .mark {
+    display: inline-grid;
+    grid-template: repeat(9, minmax(0, 1fr)) / repeat(9, minmax(0, 1fr));
+    width: var(--mark-size);
+    height: var(--mark-size);
+    flex: none;
+  }
+  .mark .on { background: var(--accent); border-radius: 50%; }
+
+  .nav nav { display: flex; flex-wrap: wrap; gap: calc(var(--space) * 2 / 3) var(--space); }
+  .nav a { color: var(--accent); font-size: var(--text-s); }
+  a:focus-visible { outline: 2px solid var(--accent); outline-offset: calc(var(--space) / 3); }
+
+  .page {
+    display: grid;
+    --grid-gap: calc(var(--space) * 2);
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: var(--grid-gap);
+    padding: calc(var(--space) * 3) var(--space) calc(var(--space) * 4);
+  }
+  .grid-letter {
+    display: grid;
+    grid-template-columns: repeat(5, var(--letter-cell));
+    grid-template-rows: repeat(5, var(--letter-cell));
+    width: max-content;
+    margin-bottom: var(--space);
+  }
+  .grid-letter .square, .grid-letter .quarter { background: var(--accent); }
+  .grid-letter .q1 { border-top-left-radius: 100%; }
+  .grid-letter .q2 { border-top-right-radius: 100%; }
+  .grid-letter .q3 { border-bottom-right-radius: 100%; }
+  .grid-letter .q4 { border-bottom-left-radius: 100%; }
+
+  .head { grid-column: 1 / -1; }
+  .intro { grid-column: span 8; margin: 0; align-self: center; }
+  .side { grid-column: span 4; align-self: end; }
+  .sec, .band { grid-column: 1 / -1; }
+  .date { color: var(--accent); font-size: var(--text-s); font-weight: 700; }
+  h1 { margin: calc(var(--space) * 2 / 3) 0; font-size: clamp(2rem, 5vw, 3.25rem); line-height: 1.15; }
+  .sub { margin: 0; font-size: var(--text-m); }
+  .sub, .info, .memo, .foot { color: var(--muted); }
+  .info { margin: 0 0 calc(var(--space) * 2 / 3); font-size: var(--text-s); }
+  .sec { margin: var(--space) 0 0; font-size: var(--text-l); }
+
+  /* 2 · 카드 모듈 */
+  .card {
+    grid-column: span 4;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space);
+    padding: var(--space);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: #fff;
+  }
+  /* 큰 카드: 같은 모듈, 크기만 다른 변형 */
+  .card.first {
+    grid-column: span 8;
+    grid-row: span 2;
+  }
+  @media (max-width: 1023px) {
+    .card.first { grid-row: auto; }
+  }
+  @media (max-width: 639px) {
+    .card.first { grid-column: 1 / -1; }
+  }
+
+  .card .ph { width: 100%; aspect-ratio: 4 / 3; border-radius: var(--radius); }
+  .card .name { margin: 0; font-size: var(--text-m); }
+  .card .memo { margin: 0; font-size: var(--text-s); }
+
+  /* 관람 안내와 자세히 링크가 공유하는 버튼 */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding: calc(var(--space) * 2 / 3) var(--space);
+    border-radius: var(--radius);
+    background: var(--accent);
+    color: #fff;
+    font-size: var(--text-s);
+    font-weight: 700;
+    text-decoration: none;
+  }
+  .btn:hover { filter: brightness(.85); }
+  .card .btn { margin-top: auto; }
+  .band {
+    padding: calc(var(--space) * 3) var(--space);
+    border-radius: var(--radius);
+    background: #efe5db;
+    text-align: center;
+  }
+  .band p { margin: 0; font-weight: 700; }
+  /* 줄 패턴: 줄 하나를 일정한 간격으로 반복 */
+  .stripe {
+    height: var(--stripe-height);
+    background: repeating-linear-gradient(
+      var(--stripe-angle),
+      var(--stripe-color) 0 var(--stripe-width),
+      transparent var(--stripe-width)
+        calc(var(--stripe-width) + var(--stripe-gap)));
+  }
+
+  .foot { font-size: var(--text-s); }
+
+  @media (max-width: 1023px) {
+    .page { grid-template-columns: repeat(8, minmax(0, 1fr)); }
+    .intro { grid-column: span 5; }
+    .side { grid-column: span 3; }
+  }
+  @media (max-width: 639px) {
+    .page { --grid-gap: var(--space); grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .intro, .side { grid-column: 1 / -1; }
+  }
+</style>
+<style>
+  .practice { max-width: 1200px; margin: 12px auto; padding: 0 12px; }
+  .practice details { background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 10px 12px; color: #222; font-size: 13px; }
+  .practice summary { cursor: pointer; font-weight: 700; }
+  .practice-nav { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0; }
+  .practice button { font: inherit; padding: 5px 10px; border: 1px solid #ccc; border-radius: 6px; background: #fff; color: #222; cursor: pointer; }
+  .practice button[aria-pressed="true"] { background: #262626; color: #fff; }
+  .pixel-editor { display: flex; flex-wrap: wrap; gap: 16px 24px; }
+  .pixel-editor h3 { margin-bottom: 4px; }
+  .edit-grid { display: grid; width: max-content; gap: 2px; margin: 8px 0; }
+  .edit-grid button { width: 23px; height: 23px; padding: 2px; border-radius: 3px; }
+  .edit-grid button span { display: block; width: 100%; height: 100%; }
+  .edit-grid .on, .edit-grid .square, .edit-grid .quarter { background: var(--accent); }
+  .edit-grid .on { border-radius: 50%; }
+  .edit-grid .q1 { border-top-left-radius: 100%; }
+  .edit-grid .q2 { border-top-right-radius: 100%; }
+  .edit-grid .q3 { border-bottom-right-radius: 100%; }
+  .edit-grid .q4 { border-bottom-left-radius: 100%; }
+  .token-fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 170px), 1fr)); gap: 8px; margin: 10px 0; }
+  .token-field { display: flex; justify-content: space-between; align-items: center; gap: 4px; }
+  .token-field input[type="number"] { width: 4.5em; }
+</style>
+</head>
+<body class="gradient-on">
+<aside class="practice" aria-label="실습 도구">
+  <details open>
+    <summary>실습 단계 · 디자인 설정</summary>
+    <div class="practice-nav" role="group" aria-label="실습 단계">
+      <button type="button" aria-controls="stage-tokens" aria-pressed="true">1 · 색과 크기 바꾸기</button>
+      <button type="button" aria-controls="stage-cards" aria-pressed="false">2 · 카드 디자인</button>
+      <button type="button" aria-controls="stage-shapes" aria-pressed="false">3 · 로고와 글자 그리기</button>
+    </div>
+    <section id="stage-tokens">
+      <p>색상 칸을 누르면 색을 고를 수 있어요. 숫자를 바꾸면 아래 전시 페이지에서 바로 확인할 수 있어요. 줄무늬 설정은 페이지 맨 아래에 바로 반영돼요. 점 설정은 점 패턴을 배치할 때 적용돼요.</p>
+      <label><input id="background-glow" type="checkbox" checked> 포인터를 따라 움직이는 배경</label>
+      <form id="token-form">
+        <div class="token-fields"></div>
+        <button type="reset">초기값으로</button>
+      </form>
+    </section>
+    <section id="stage-cards" hidden>
+      <label><input id="featured-card" type="checkbox" checked> 첫 번째 카드를 크게 표시</label>
+      <ul>
+        <li>카드 안쪽 여백과 사진·제목·설명 사이 간격은 함께 바뀌어요.</li>
+        <li>카드, 사진 틀, 버튼에 같은 모서리 둥글기를 적용해요.</li>
+        <li>기본 글자 크기는 카드 제목에, 작은 글자 크기는 설명에 적용돼요.</li>
+        <li>강조 색상은 ‘자세히’와 ‘관람 안내 보기’ 버튼의 배경에 쓰여요.</li>
+      </ul>
+    </section>
+    <section id="stage-shapes" hidden>
+      <p>로고는 칸을 눌러 원을 켜거나 꺼요. 글자는 모양을 고른 다음 바꿀 칸을 누르세요. 크기와 색은 첫 번째 탭에서 바꿀 수 있어요.</p>
+      <div class="pixel-editor">
+        <div>
+          <h3>사이트 로고</h3>
+          <div class="edit-grid" id="mark-editor" role="group" aria-label="로고 칸 편집"></div>
+          <button type="button" id="reset-mark">로고 초기화</button>
+        </div>
+        <div>
+          <h3>제목 위 글자</h3>
+          <label>넣을 모양
+            <select id="letter-shape">
+              <option value="square">정사각형</option>
+              <option value="quarter q1">왼쪽 위가 둥근 사분원</option>
+              <option value="quarter q2">오른쪽 위가 둥근 사분원</option>
+              <option value="quarter q3">오른쪽 아래가 둥근 사분원</option>
+              <option value="quarter q4">왼쪽 아래가 둥근 사분원</option>
+              <option value="">빈칸</option>
+            </select>
+          </label>
+          <div class="edit-grid" id="letter-editor" role="group" aria-label="글자 칸 편집"></div>
+          <button type="button" id="reset-letter">글자 초기화</button>
+        </div>
+      </div>
+    </section>
+  </details>
+</aside>
+<header class="nav"><b class="brand"><span class="mark" aria-hidden="true"><span></span><span></span><span></span><span></span><span class="on"></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span class="on"></span><span class="on"></span><span class="on"></span><span></span><span></span><span></span><span></span><span></span><span class="on"></span><span class="on"></span><span class="on"></span><span class="on"></span><span class="on"></span><span></span><span></span><span></span><span class="on"></span><span class="on"></span><span class="on"></span><span class="on"></span><span class="on"></span><span class="on"></span><span class="on"></span><span></span><span></span><span></span><span class="on"></span><span class="on"></span><span class="on"></span><span class="on"></span><span class="on"></span><span></span><span></span><span></span><span></span><span></span><span class="on"></span><span class="on"></span><span class="on"></span><span></span><span></span><span></span><span></span><span></span><span></span><span class="on"></span><span class="on"></span><span class="on"></span><span></span><span></span><span></span><span></span><span></span><span></span><span class="on"></span><span class="on"></span><span class="on"></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span class="on"></span><span></span><span></span><span></span><span></span></span>작은 정원</b><nav><a href="#">전시</a><a href="#">오시는 길</a><a href="#">문의</a></nav></header>
+<main class="page">
+  <div class="head"><div class="date">10월 20일 – 11월 2일</div><div class="grid-letter" aria-hidden="true">
+      <span></span><span class="quarter q1"></span><span class="square"></span><span class="quarter q2"></span><span></span>
+      <span class="square"></span><span></span><span></span><span></span><span class="square"></span>
+      <span class="square"></span><span class="square"></span><span class="square"></span><span class="square"></span><span class="square"></span>
+      <span class="square"></span><span></span><span></span><span></span><span class="square"></span>
+      <span class="square"></span><span></span><span></span><span></span><span class="square"></span>
+    </div>
+    <h1>작은 정원 사진전</h1><p class="sub">베란다와 창틀에서 자란 것들</p></div>
+  <p class="intro">아파트 베란다, 학교 창틀, 골목 화분처럼 한 뼘 남짓한 자리에서 자란 식물을 찍은 사진 스무 장을 모았습니다. 사진마다 키운 사람이 적은 짧은 메모가 함께 걸립니다.</p>
+  <div class="side"><p class="info">1층 로비 · 무료 · 오전 10시–오후 6시</p><a class="btn" href="#">관람 안내 보기</a></div>
+  <h2 class="sec">사진 여섯 장</h2>
+  <article class="card first">
+    <div class="ph" style="background:#cfe3c4;"></div>
+    <h3 class="name">바질</h3>
+    <p class="memo">창가 화분 하나에서 여름 내내 잎을 땄습니다</p>
+    <a class="btn" href="#">자세히</a>
+  </article>
+  <article class="card">
+    <div class="ph" style="background:#bcd3c0;"></div>
+    <h3 class="name">고무나무</h3>
+    <p class="memo">이사 올 때 가져온 지 7년째</p>
+    <a class="btn" href="#">자세히</a>
+  </article>
+  <article class="card">
+    <div class="ph" style="background:#e7cfc4;"></div>
+    <h3 class="name">방울토마토</h3>
+    <p class="memo">베란다 난간에 묶어 키웠습니다</p>
+    <a class="btn" href="#">자세히</a>
+  </article>
+  <article class="card">
+    <div class="ph" style="background:#c9dccd;"></div>
+    <h3 class="name">스킨답서스</h3>
+    <p class="memo">물병에 꽂아 두었더니 뿌리가 났습니다</p>
+    <a class="btn" href="#">자세히</a>
+  </article>
+  <article class="card">
+    <div class="ph" style="background:#d3d9c4;"></div>
+    <h3 class="name">로즈마리</h3>
+    <p class="memo">겨울에도 살아남은 첫 화분</p>
+    <a class="btn" href="#">자세히</a>
+  </article>
+  <article class="card">
+    <div class="ph" style="background:#c4d6cf;"></div>
+    <h3 class="name">몬스테라</h3>
+    <p class="memo">잎이 갈라지기까지 2년</p>
+    <a class="btn" href="#">자세히</a>
+  </article>
+  <section class="band"><p>매주 토요일 오후 2시, 키운 사람과 함께하는 화분 이야기</p></section>
+</main>
+<div class="stripe" aria-hidden="true"></div>
+<footer class="foot">작은 정원 사진전 · 미디어디자인Ⅰ 9주차 연습 파일</footer>
+<script>
+  const root = document.documentElement;
+  const rules = Array.from(document.styleSheets[0].cssRules);
+  const tokens = rules.find(rule => rule.selectorText === ':root').style;
+
+  const stageButtons = document.querySelectorAll('.practice-nav button');
+  for (const button of stageButtons) {
+    button.addEventListener('click', () => {
+      for (const stage of stageButtons) {
+        const selected = stage === button;
+        stage.setAttribute('aria-pressed', selected);
+        document.getElementById(stage.getAttribute('aria-controls')).hidden = !selected;
+      }
+    });
+  }
+
+  const form = document.getElementById('token-form');
+  const fields = form.querySelector('.token-fields');
+  const tokenLabels = {
+    '--mark-size': '로고 크기', '--letter-cell': '글자 한 칸 크기', '--stripe-height': '줄무늬 띠 높이',
+    '--accent': '강조 색상', '--ink': '기본 글자 색', '--muted': '보조 글자 색',
+    '--line': '테두리 색', '--paper': '페이지 배경색',
+    '--text-s': '작은 글자 크기', '--text-m': '기본 글자 크기', '--text-l': '섹션 제목 크기',
+    '--space': '기본 여백', '--radius': '모서리 둥글기',
+    '--dot-size': '점 크기', '--dot-gap': '점 사이 간격', '--dot-color': '점 색상',
+    '--stripe-angle': '줄무늬 기울기', '--stripe-width': '줄무늬 두께',
+    '--stripe-gap': '줄무늬 사이 간격', '--stripe-color': '줄무늬 색상'
+  };
+  const ranges = {
+    '--mark-size': [9, 72], '--letter-cell': [8, 48], '--stripe-height': [0, 120],
+    '--text-s': [10, 32], '--text-m': [10, 48], '--text-l': [10, 64],
+    '--space': [0, 40], '--radius': [0, 48],
+    '--dot-size': [1, 24], '--dot-gap': [1, 80],
+    '--stripe-angle': [0, 360], '--stripe-width': [1, 48], '--stripe-gap': [1, 48]
+  };
+  for (const token of Array.from(tokens)) {
+    const initial = tokens.getPropertyValue(token).trim();
+    const label = document.createElement('label');
+    label.className = 'token-field';
+    const name = document.createElement('span');
+    name.textContent = tokenLabels[token] ?? token;
+    const input = document.createElement('input');
+    const range = ranges[token];
+    const unit = initial.endsWith('deg') ? 'deg' : 'px';
+    if (range) {
+      input.type = 'number';
+      [input.min, input.max] = range;
+      input.defaultValue = parseInt(initial, 10);
+      input.required = true;
+      name.textContent += unit === 'deg' ? ' (도)' : ' (px)';
+    } else {
+      input.type = 'color';
+      input.defaultValue = initial.length === 4
+        ? initial.replace(/[0-9a-f]/gi, digit => digit + digit)
+        : initial;
+    }
+    input.addEventListener('input', () => {
+      if (input.validity.valid) {
+        root.style.setProperty(token, input.value + (range ? unit : ''));
+      }
+    });
+    label.append(name, input);
+    fields.append(label);
+  }
+  form.addEventListener('submit', event => event.preventDefault());
+  form.addEventListener('reset', () => {
+    for (const token of Array.from(tokens)) root.style.removeProperty(token);
+  });
+  document.getElementById('featured-card').addEventListener('change', event => {
+    document.querySelector('.card').classList.toggle('first', event.target.checked);
+  });
+
+  function connectGrid(selector, editorId, resetId, columns, nextShape) {
+    const cells = Array.from(document.querySelector(selector).children);
+    const original = cells.map(cell => cell.className);
+    const editor = document.getElementById(editorId);
+    editor.style.gridTemplateColumns = 'repeat(' + columns + ', 23px)';
+
+    const shapeNames = {
+      on: '원', square: '정사각형', 'quarter q1': '왼쪽 위 사분원',
+      'quarter q2': '오른쪽 위 사분원', 'quarter q3': '오른쪽 아래 사분원',
+      'quarter q4': '왼쪽 아래 사분원', '': '빈칸'
+    };
+
+    const render = cells.map((cell, index) => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      const dot = document.createElement('span');
+      button.append(dot);
+      editor.append(button);
+      const row = Math.floor(index / columns) + 1;
+      const column = index % columns + 1;
+      const paint = shape => {
+        cell.className = shape;
+        dot.className = shape;
+        button.setAttribute('aria-label', row + '행 ' + column + '열, ' + shapeNames[shape]);
+      };
+      button.addEventListener('click', () => paint(nextShape(cell.className)));
+      paint(original[index]);
+      return paint;
+    });
+
+    document.getElementById(resetId).addEventListener('click', () => {
+      render.forEach((paint, index) => paint(original[index]));
+    });
+  }
+
+  const brush = document.getElementById('letter-shape');
+  connectGrid('.mark', 'mark-editor', 'reset-mark', 9, current => current ? '' : 'on');
+  connectGrid('.grid-letter', 'letter-editor', 'reset-letter', 5, () => brush.value);
+  const glowToggle = document.getElementById('background-glow');
+  const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)');
+  glowToggle.addEventListener('change', () => {
+    document.body.classList.toggle('gradient-on', glowToggle.checked);
+  });
+
+  let glowFrame = 0;
+  let glowPoint;
+  function centerGlow() {
+    cancelAnimationFrame(glowFrame);
+    glowFrame = 0;
+    root.style.removeProperty('--glow-x');
+    root.style.removeProperty('--glow-y');
+  }
+
+  window.addEventListener('pointermove', event => {
+    if (!glowToggle.checked || reduceMotion.matches || event.pointerType === 'touch') return;
+    glowPoint = event;
+    if (glowFrame) return;
+    glowFrame = requestAnimationFrame(() => {
+      root.style.setProperty('--glow-x', glowPoint.clientX + 'px');
+      root.style.setProperty('--glow-y', glowPoint.clientY + 'px');
+      glowFrame = 0;
+    });
+  }, { passive: true });
+  document.documentElement.addEventListener('pointerleave', centerGlow);
+  reduceMotion.addEventListener('change', centerGlow);
+  glowToggle.addEventListener('change', centerGlow);
+</script>
+</body>
+</html>
+
+
+
+

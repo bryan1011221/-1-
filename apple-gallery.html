@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>사과 전시</title>
+<style>
+  :root {
+    --accent: #a31620;
+    --ink: #291c1c;
+    --paper: #fff;
+    --line: #e9d9d9;
+    --gutter: clamp(16px, 3vw, 48px);
+    --space: 12px;
+    --radius: 8px;
+    --stripe-angle: 45deg;
+    --stripe-width: 2px;
+    --stripe-gap: 10px;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--paper); color: var(--ink); font-family: system-ui, sans-serif; }
+  header, main { max-width: 76rem; margin-inline: auto; padding-inline: var(--gutter); }
+  header { padding-block: clamp(3rem, 9vw, 8rem) calc(var(--space) * 3); }
+  header a { color: var(--accent); text-underline-offset: .25em; }
+  h1 { margin: var(--space) 0 0; color: var(--accent); font-size: clamp(2.75rem, 8vw, 7rem); }
+  main {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: var(--gutter);
+    padding-bottom: calc(var(--space) * 6);
+  }
+  .card {
+    grid-column: span 6;
+    margin: 0;
+    padding: var(--space);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+  }
+  .card.first { grid-column: 1 / -1; }
+  .card img { display: block; width: 100%; height: clamp(16rem, 60vw, 34rem); object-fit: contain; }
+  .card figcaption { margin-top: var(--space); color: var(--accent); font-weight: 700; }
+  .stripe {
+    height: calc(var(--space) * 3);
+    background: repeating-linear-gradient(var(--stripe-angle), var(--accent) 0 var(--stripe-width),
+      transparent var(--stripe-width) calc(var(--stripe-width) + var(--stripe-gap)));
+  }
+  @media (max-width: 640px) {
+    main { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .card { grid-column: 1 / -1; }
+  }
+  html { scroll-behavior: smooth; scroll-snap-type: y proximity; }
+  .about, #exhibition { scroll-snap-align: start; }
+  .about {
+    min-height: 100svh;
+    max-width: none;
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+    align-items: center;
+    gap: var(--gutter);
+    padding: clamp(32px, 7vw, 110px) max(var(--gutter), calc((100vw - 76rem) / 2));
+    background: #080808;
+    color: #f6eee9;
+  }
+  .about canvas { display: block; width: 100%; aspect-ratio: 1; }
+  .about h1 {
+    color: inherit;
+    font-family: Georgia, serif;
+    font-weight: 400;
+    font-size: clamp(1.4rem, 2.25vw, 2.25rem);
+    line-height: .92;
+  }
+  .about p { max-width: 49ch; color: #d5c6c2; font-size: .75rem; line-height: 1.65; }
+  #exhibition { padding-block: calc(var(--space) * 4); }
+  #exhibition h2 { color: var(--accent); font-size: clamp(2rem, 6vw, 5rem); margin: var(--space) 0 0; }
+  @media (max-width: 680px) {
+    .about { grid-template-columns: 1fr; }
+    .about canvas { width: min(100%, 360px); margin-inline: auto; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; scroll-snap-type: none; }
+  }
+</style>
+</head>
+<body>
+<header class="about" lang="en">
+  <canvas id="apple-model" width="640" height="640" role="img" aria-label="A red apple rotating in three dimensions"></canvas>
+  <div>
+    <h1>About apple</h1>
+    <p>The apple is the edible fruit of <i>Malus domestica</i>, a deciduous tree in the rose family. Apples vary widely in color, shape, and flavor. Their skin may be red, green, or yellow, while the flesh ranges from crisp and tart to soft and sweet. A cross-section through the fruit reveals the chambers that hold its seeds.</p>
+    <p>Domesticated apples trace much of their ancestry to wild trees in Central Asia. As cultivation spread, growers selected trees for flavor, texture, and keeping quality. Named cultivars are commonly propagated by grafting, which preserves the characteristics of the parent tree. Apples are eaten fresh, baked into pies, pressed into cider, and cooked into sauces and preserves.</p>
+  </div>
+</header>
+<header id="exhibition">
+  <a href="apple.html">처음으로</a>
+  <h2>사과 전시</h2>
+</header>
+<main>
+  <figure class="card first">
+    <img src="apple-assets/apple-01-stemless.png" alt="물방울이 맺힌 붉은 사과">
+    <figcaption>온전한 사과</figcaption>
+  </figure>
+  <figure class="card">
+    <img src="apple-assets/apple-02-stemless.png" alt="오른쪽 윗부분이 베어 먹힌 사과" loading="lazy">
+    <figcaption>첫 한입</figcaption>
+  </figure>
+  <figure class="card">
+    <img src="apple-assets/apple-03-stemless.png" alt="오른쪽에 두 개의 깊은 베어 문 자국이 난 사과" loading="lazy">
+    <figcaption>두 번째 한입</figcaption>
+  </figure>
+  <figure class="card">
+    <img src="apple-assets/apple-core-clean-stemless.png" alt="붉은 껍질 사이로 밝은 과육이 남은 사과심" loading="lazy">
+    <figcaption>남은 사과심</figcaption>
+  </figure>
+</main>
+<div class="stripe" aria-hidden="true"></div>
+<script>
+  const canvas = document.getElementById('apple-model');
+  const ctx = canvas.getContext('2d');
+  const motion = matchMedia('(prefers-reduced-motion: reduce)');
+  const rows = 36;
+  const columns = 60;
+  const vertices = [];
+
+  for (let row = 0; row <= rows; row++) {
+    const latitude = Math.PI * row / rows;
+    const height = Math.cos(latitude);
+    const width = Math.sin(latitude) * (1 + .13 * height);
+    for (let column = 0; column < columns; column++) {
+      const longitude = 2 * Math.PI * column / columns;
+      const radius = width * (1 + .065 * Math.cos(5 * longitude) * height ** 2
+        + .038 * Math.sin(3 * longitude + latitude));
+      vertices.push({
+        x: radius * Math.cos(longitude),
+        y: height * .95 - .18 * Math.max(0, height) ** 9 + .09 * Math.max(0, -height) ** 9,
+        z: radius * Math.sin(longitude)
+      });
+    }
+  }
+
+  function draw(time) {
+    const angle = time / 2400;
+    const cosine = Math.cos(angle);
+    const sine = Math.sin(angle);
+    ctx.clearRect(0, 0, 640, 640);
+    const points = vertices.map(({x, y, z}) => {
+      const horizontal = x * cosine - z * sine;
+      const depth = x * sine + z * cosine;
+      return {
+        x: 320 + horizontal * 225,
+        y: 323 - (y * .986 + depth * .167) * 225,
+        z: depth * .986 - y * .167
+      };
+    });
+    const faces = [];
+    for (let row = 0; row < rows; row++) {
+      for (let column = 0; column < columns; column++) {
+        const next = (column + 1) % columns;
+        const a = points[row * columns + column];
+        const b = points[row * columns + next];
+        const c = points[(row + 1) * columns + next];
+        const d = points[(row + 1) * columns + column];
+        const ux = b.x - a.x, uy = b.y - a.y, uz = (b.z - a.z) * 225;
+        const vx = d.x - a.x, vy = d.y - a.y, vz = (d.z - a.z) * 225;
+        const nx = uy * vz - uz * vy;
+        const ny = uz * vx - ux * vz;
+        const nz = ux * vy - uy * vx;
+        if (nz >= 0) continue;
+        const length = Math.hypot(nx, ny, nz);
+        const diffuse = Math.max(0, (nx * .42 + ny * .48 - nz * .76) / length);
+        const shine = Math.max(0, (nx * .22 + ny * .27 - nz * .94) / length) ** 25;
+        const peel = 7 * Math.sin(column * 1.7 + row * .21) + 4 * Math.cos(column * 2.2 - row * .7);
+        faces.push({corners: [a, b, c, d], depth: (a.z + b.z + c.z + d.z) / 4,
+          color: 'rgb(' + Math.round(60 + 151 * diffuse + 38 * shine + peel) + ','
+            + Math.round(6 + 27 * diffuse + 123 * shine) + ','
+            + Math.round(12 + 20 * diffuse + 105 * shine) + ')'});
+      }
+    }
+    faces.sort((a, b) => a.depth - b.depth);
+    for (const {corners, color} of faces) {
+      ctx.beginPath();
+      ctx.moveTo(corners[0].x, corners[0].y);
+      for (const point of corners.slice(1)) ctx.lineTo(point.x, point.y);
+      ctx.closePath();
+      ctx.fillStyle = ctx.strokeStyle = color;
+      ctx.lineWidth = .8;
+      ctx.fill();
+      ctx.stroke();
+    }
+  }
+
+  let frame;
+  function render(time) {
+    draw(time);
+    if (!motion.matches) frame = requestAnimationFrame(render);
+  }
+  function restart() {
+    cancelAnimationFrame(frame);
+    render(0);
+  }
+  motion.addEventListener('change', restart);
+  restart();
+</script>
+</body>
+</html>

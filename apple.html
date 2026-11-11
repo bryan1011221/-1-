@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>사과</title>
+<style>
+  :root { --gutter: clamp(16px, 3vw, 48px); --dot-gap: 18px; --dot-radius: 1px; --dot-color: #cf2538; }
+  body { margin: 0; background: white; }
+  .scene {
+    position: relative;
+    min-height: 100svh;
+    overflow: hidden;
+    background-image: radial-gradient(circle, var(--dot-color) var(--dot-radius), transparent calc(var(--dot-radius) + .25px));
+    background-size: var(--dot-gap) var(--dot-gap);
+    background-position: var(--gutter) var(--gutter);
+  }
+  .apple {
+    --size: max(112vw, 152svh);
+    position: absolute;
+    width: var(--size);
+    aspect-ratio: 1;
+    top: 50%;
+    left: min(calc(var(--size) * -.48), calc(58vw - var(--size) * .94));
+    transform: translateY(-50%);
+    padding: 0;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  @media (max-aspect-ratio: 7/5) {
+    .apple {
+      --size: 112vw;
+      top: calc(var(--size) * .31);
+    }
+  }
+  .apple img {
+    display: block;
+    width: 100%;
+    transform-origin: 48% 50%;
+    transition: transform 180ms ease-out;
+    pointer-events: none;
+  }
+  @media (hover: hover) {
+    .apple:not(:disabled):hover img { transform: scale(1.008); }
+  }
+  .apple:focus-visible { outline: 3px solid #a31620; outline-offset: -4px; }
+  .apple:disabled { cursor: default; }
+  .wordmark {
+    position: absolute;
+    top: 50%;
+    left: 77%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    align-items: baseline;
+    gap: .035em;
+    margin: 0;
+    padding: .18em .22em .26em;
+    background: #fff;
+    color: #a31620;
+    font-size: clamp(1.35rem, 7.6vw, 10rem);
+    line-height: .9;
+    pointer-events: none;
+  }
+  .apple img, .wordmark span { filter: url(#grain); }
+  .wordmark span:nth-child(1) { font-family: Georgia, serif; font-weight: 900; }
+  .wordmark span:nth-child(2) { font-family: Impact, "Arial Black", sans-serif; }
+  .wordmark span:nth-child(3) { font-family: "Trebuchet MS", sans-serif; font-weight: 400; font-size: .83em; transform: rotate(-9deg); }
+  .wordmark span:nth-child(4) { font-family: "Courier New", monospace; font-weight: 700; font-size: .9em; }
+  .wordmark span:nth-child(5) { font-family: "Times New Roman", serif; font-style: italic; font-size: 1.13em; }
+  @media (prefers-reduced-motion: reduce) {
+    @media (max-aspect-ratio: 7/5) {
+    .apple {
+      --size: 112vw;
+      top: calc(var(--size) * .31);
+    }
+  }
+  .apple img { transition: none; transform: none !important; }
+  }
+</style>
+</head>
+<body>
+<svg width="0" height="0" aria-hidden="true" style="position:absolute">
+  <filter id="grain" color-interpolation-filters="sRGB">
+    <feTurbulence type="fractalNoise" baseFrequency=".78" numOctaves="3" stitchTiles="stitch" result="noise"/>
+    <feColorMatrix in="noise" type="saturate" values="0"/>
+    <feComponentTransfer>
+      <feFuncA type="linear" slope=".15"/>
+    </feComponentTransfer>
+    <feComposite in2="SourceAlpha" operator="in" result="texture"/>
+    <feBlend in="texture" in2="SourceGraphic" mode="soft-light"/>
+  </filter>
+</svg>
+<main class="scene">
+  <button class="apple" type="button" aria-label="사과 한입 먹기">
+    <img src="apple-assets/apple-01-stemless.png" alt="">
+  </button>
+  <h1 class="wordmark" aria-label="apple"><span aria-hidden="true">a</span><span aria-hidden="true">p</span><span aria-hidden="true">p</span><span aria-hidden="true">l</span><span aria-hidden="true">e</span></h1>
+</main>
+<script>
+  const apple = document.querySelector('.apple');
+  const photo = apple.querySelector('img');
+  const frames = ['apple-01-stemless.png', 'apple-02-stemless.png', 'apple-03-stemless.png', 'apple-core-clean-stemless.png'];
+  const preload = frames.map(file => {
+    const image = new Image();
+    image.src = 'apple-assets/' + file;
+    return image;
+  });
+  let frame = 0;
+  let changing = false;
+
+  apple.addEventListener('click', async () => {
+    if (changing || frame === frames.length - 1) return;
+    changing = true;
+    const next = preload[frame + 1];
+    try {
+      await next.decode();
+      photo.src = next.src;
+      frame += 1;
+      if (frame === frames.length - 1) {
+        apple.setAttribute('aria-label', '사과심만 남았습니다');
+        apple.disabled = true;
+        window.setTimeout(() => window.location.assign('apple-gallery.html'), 3000);
+      }
+    } catch (error) {
+      console.error('Could not load the next apple image', error);
+    } finally {
+      changing = false;
+    }
+  });
+</script>
+</body>
+</html>
