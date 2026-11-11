@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="ko">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>점과 직선</title>
+<style>
+  body { margin: 0; overflow: hidden; background: #000; }
+  canvas { display: block; position: fixed; inset: 0; width: 100%; height: 100%; touch-action: none; }
+</style>
+<canvas aria-label="검은 배경에 흰 선으로 연결된 빨간 점 30개"></canvas>
+<script>
+  const canvas = document.querySelector('canvas');
+  const ctx = canvas.getContext('2d');
+  let width = 0, height = 0;
+
+  const points = [];
+  let pointer = null;
+  let frame = 0;
+
+  function redrawPoints() {
+    points.length = 0;
+    const margin = Math.min(18, width * 0.035, height * 0.035);
+    while (points.length < 30) {
+      let best;
+      let bestDistance = -1;
+      for (let i = 0; i < 35; i++) {
+        const x = margin + Math.random() * (width - 2 * margin);
+        const y = margin + Math.random() * (height - 2 * margin);
+        const distance = Math.min(...points.map(p => (x - p.x) ** 2 + (y - p.y) ** 2));
+        if (distance > bestDistance) {
+          best = { x, y, drawX: x, drawY: y };
+          bestDistance = distance;
+        }
+      }
+      points.push(best);
+    }
+  }
+
+  function schedule() {
+    if (!frame) frame = requestAnimationFrame(draw);
+  }
+
+  function draw() {
+    frame = 0;
+    let moving = false;
+    const radius = Math.max(110, Math.min(220, Math.min(width, height) * 0.32));
+    for (const point of points) {
+      const distance = pointer ? Math.hypot(point.x - pointer.x, point.y - pointer.y) : Infinity;
+      const proximity = Math.max(0, 1 - distance / radius);
+      const angle = pointer ? Math.atan2(point.y - pointer.y, point.x - pointer.x) : 0;
+      const force = 22 * proximity;
+      const targetX = Math.max(4, Math.min(width - 4, point.x + Math.cos(angle) * force));
+      const targetY = Math.max(4, Math.min(height - 4, point.y + Math.sin(angle) * force));
+      const dx = targetX - point.drawX;
+      const dy = targetY - point.drawY;
+      const shifting = Math.hypot(dx, dy) > 0.1;
+      point.drawX = shifting ? point.drawX + dx * 0.2 : targetX;
+      point.drawY = shifting ? point.drawY + dy * 0.2 : targetY;
+      moving ||= shifting;
+    }
+
+    ctx.clearRect(0, 0, width, height);
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.085)';
+    ctx.lineWidth = 0.65;
+    ctx.beginPath();
+    for (let i = 0; i < points.length; i++) {
+      const start = points[i];
+      for (let j = i + 1; j < points.length; j++) {
+        const end = points[j];
+        ctx.moveTo(start.drawX, start.drawY);
+        ctx.lineTo(end.drawX, end.drawY);
+      }
+    }
+    ctx.stroke();
+
+    ctx.fillStyle = '#ff3038';
+    for (const point of points) {
+      ctx.beginPath();
+      ctx.arc(point.drawX, point.drawY, 3, 0, 2 * Math.PI);
+      ctx.fill();
+    }
+    if (moving) schedule();
+  }
+
+  function resize() {
+    const bounds = canvas.getBoundingClientRect();
+    if (!bounds.width || !bounds.height) return;
+    const oldWidth = width;
+    const oldHeight = height;
+    const changed = bounds.width !== width || bounds.height !== height;
+    width = bounds.width;
+    height = bounds.height;
+    canvas.width = Math.max(1, Math.round(width * devicePixelRatio));
+    canvas.height = Math.max(1, Math.round(height * devicePixelRatio));
+    ctx.setTransform(canvas.width / width, 0, 0, canvas.height / height, 0, 0);
+    if (changed) {
+      pointer = null;
+      if (!points.length) {
+        redrawPoints();
+      } else {
+        const scaleX = width / oldWidth;
+        const scaleY = height / oldHeight;
+        for (const point of points) {
+          point.x *= scaleX;
+          point.y *= scaleY;
+          point.drawX *= scaleX;
+          point.drawY *= scaleY;
+        }
+      }
+    }
+    schedule();
+  }
+
+  function trackPointer(event) {
+    const bounds = canvas.getBoundingClientRect();
+    pointer = {
+      x: event.clientX - bounds.left,
+      y: event.clientY - bounds.top
+    };
+    schedule();
+  }
+
+  function resetPointer() {
+    pointer = null;
+    schedule();
+  }
+
+  canvas.addEventListener('pointermove', trackPointer);
+  canvas.addEventListener('pointerdown', trackPointer);
+  canvas.addEventListener('pointerup', event => { if (event.pointerType !== 'mouse') resetPointer(); });
+  canvas.addEventListener('pointerleave', resetPointer);
+  canvas.addEventListener('pointercancel', resetPointer);
+  new ResizeObserver(resize).observe(canvas);
+  resize();
+</script>
+</html>
+
+
+
+
